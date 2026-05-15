@@ -20,7 +20,7 @@ from datetime import timedelta
 import ray
 import torch.distributed
 
-from verl.utils.device import get_device_name, get_nccl_backend, get_torch_device, is_npu_available
+from verl.utils.device import get_dist_backend, get_torch_device, is_npu_available
 
 
 def set_numa_affinity():
@@ -53,7 +53,7 @@ def set_numa_affinity():
 
 def initialize_global_process_group(timeout_second=36000):
     torch.distributed.init_process_group(
-        get_nccl_backend(),
+        get_dist_backend(),
         timeout=timedelta(seconds=timeout_second),
         init_method=os.environ.get("DIST_INIT_METHOD", None),
     )
@@ -82,7 +82,7 @@ def initialize_global_process_group_ray(timeout_second=None):
         rank = int(os.environ.get("RANK", 0))
         world_size = int(os.environ.get("WORLD_SIZE", 1))
         torch.distributed.init_process_group(
-            backend=f"cpu:gloo,{get_device_name()}:{get_nccl_backend()}",
+            backend=get_dist_backend(),
             rank=rank,
             world_size=world_size,
             timeout=timeout,

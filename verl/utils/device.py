@@ -93,6 +93,19 @@ def get_nccl_backend() -> str:
     return get_platform().communication_backend_name()
 
 
+def get_dist_backend() -> str:
+    """Get the compound backend string for ``init_process_group``.
+
+    Returns ``"gloo"`` on CPU, otherwise ``"cpu:gloo,<device>:<comm>"``
+    (e.g. ``"cpu:gloo,cuda:nccl"``, ``"cpu:gloo,musa:flagcx"``).
+    Works for any device type — no device-specific branches needed.
+    """
+    device_name = get_device_name()
+    if device_name == "cpu":
+        return "gloo"
+    return f"cpu:gloo,{device_name}:{get_nccl_backend()}"
+
+
 # ---------------------------------------------------------------------------
 # Memory / allocator
 # ---------------------------------------------------------------------------
